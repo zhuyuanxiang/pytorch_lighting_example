@@ -23,6 +23,8 @@ from pytorch_lightning import LightningModule
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks.progress import TQDMProgressBar
 from pytorch_lightning.loggers import CSVLogger
+from torchmetrics import PeakSignalNoiseRatio
+from torchmetrics import StructuralSimilarityIndexMeasure
 
 from datasets.lit_mnist_datamodel import MNISTDataModule
 
@@ -97,6 +99,8 @@ class GAN(LightningModule):
         self.validation_z = torch.randn(8, self.hparams.latent_dim)
 
         self.example_input_array = torch.zeros(2, self.hparams.latent_dim)
+        self.psnr = PeakSignalNoiseRatio().to(device=self.device)
+        self.ssim = StructuralSimilarityIndexMeasure(data_range=1.0).to(device=self.device)
         pass
 
     def forward(self, z):
@@ -104,6 +108,15 @@ class GAN(LightningModule):
 
     def adversarial_loss(self, y_hat, y):
         return F.binary_cross_entropy(y_hat, y)
+
+    def configure_optimizers(self):
+        lr = self.hparams.lr
+        b1 = self.hparams.b1
+        b2 = self.hparams.b2
+
+        opt_g = torch.optim.Adam(self.generator.parameters(), lr=lr, betas=(b1, b2))
+        opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=lr, betas=(b1, b2))
+        return [opt_g, opt_d], []
 
     def training_step(self, batch, batch_idx, optimizer_idx):
         imgs, _ = batch
@@ -115,10 +128,10 @@ class GAN(LightningModule):
         # train generator
         if optimizer_idx == 0:
             # generate images
-            self.generated_imgs = self(z)
+            generated_imgs = self(z)
 
             # log sampled images
-            sample_imgs = self.generated_imgs[:6]
+            sample_imgs = generated_imgs[:6]
             grid = torchvision.utils.make_grid(sample_imgs)
             # self.logger.experiment.add_image("generated_images", grid, 0)
 
@@ -128,7 +141,7 @@ class GAN(LightningModule):
             valid = valid.type_as(imgs)
 
             # adversarial loss is binary cross-entropy
-            g_loss = self.adversarial_loss(self.discriminator(self(z)), valid)
+            g_loss = self.adversarial_loss(self.discriminator(generated_imgs), valid)
             self.log("g_loss", g_loss, prog_bar=True)
             return g_loss
 
@@ -153,16 +166,20 @@ class GAN(LightningModule):
             self.log("d_loss", d_loss, prog_bar=True)
             return d_loss
 
-    def configure_optimizers(self):
-        lr = self.hparams.lr
-        b1 = self.hparams.b1
-        b2 = self.hparams.b2
+    def validation_step(self, batch, batch_idx):
+        imgs, _ = batch
+        valid = torch.ones(imgs.size(0), 1)
+        valid = valid.type_as(imgs)
 
-        opt_g = torch.optim.Adam(self.generator.parameters(), lr=lr, betas=(b1, b2))
-        opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=lr, betas=(b1, b2))
-        return [opt_g, opt_d], []
+        # z = torch.randn(imgs.shape[0], self.hparams.latent_dim).type_as(imgs)
+        z = self.validation_z.type_as(self.generator.model[0].weight)
+        generated_imgs = self(z)
+
+        # ToDo: 这个 GAN 的代码本身存在问题，只是了解GAN的写作风格
+        # self.log("g_loss", g_loss, prog_bar=True)
 
     def on_validation_epoch_end(self):
+        print("on_validation_epoch_end")
         z = self.validation_z.type_as(self.generator.model[0].weight)
 
         # log sampled images
