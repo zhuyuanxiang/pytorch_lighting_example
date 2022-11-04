@@ -12,150 +12,127 @@
 @Plan   :
 ==================================================
 """
+from typing import Any
+from typing import Callable
+from typing import Optional
+from typing import Union
+
 import pandas as pd
 import seaborn as sn
 import torch
+from matplotlib import pyplot as plt
 from pytorch_lightning import LightningModule
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import TQDMProgressBar
+from pytorch_lightning.cli import LRSchedulerTypeUnion
+from pytorch_lightning.core.optimizer import LightningOptimizer
 from pytorch_lightning.loggers import CSVLogger
-from torch import nn
-from torch.nn import functional as F
-from torch.utils.data import DataLoader
-from torch.utils.data import random_split
+from torch.nn import functional as func
+from torch.optim import Optimizer
 from torchmetrics import Accuracy
-from torchvision import transforms
-from torchvision.datasets import MNIST
 
-from config import BATCH_SIZE
-from config import NUM_WORKERS
-from config import PATH_DATASETS
+from data_module.mnist_data_module import MNISTDataModule
+from models.mnist_module import MNISTModule
 
 
 class LitMNIST(LightningModule):
-    def __init__(self, data_dir=PATH_DATASETS, hidden_size=64, learning_rate=2e-4):
-
+    def __init__(self,
+                 hidden_size=64,
+                 num_classes=10,
+                 dims=(1, 28, 28),
+                 learning_rate=2e-4,
+                 ):
         super().__init__()
-
         # Set our init args as class attributes
-        self.data_dir = data_dir
-        self.hidden_size = hidden_size
-        self.learning_rate = learning_rate
-        self.mnist_train, self.mnist_val, self.mnist_test = None, None, None
+        self.save_hyperparameters()
 
         # Hardcode some dataset specific attributes
-        self.num_classes = 10
-        self.dims = (1, 28, 28)
-        channels, width, height = self.dims
-        self.transform = transforms.Compose(
-                [
-                        transforms.ToTensor(),
-                        transforms.Normalize((0.1307,), (0.3081,)),
-                        ]
-                )
-
-        # Define PyTorch model
-        self.model = nn.Sequential(
-                nn.Flatten(),
-                nn.Linear(channels * width * height, hidden_size),
-                nn.ReLU(),
-                nn.Dropout(0.1),
-                nn.Linear(hidden_size, hidden_size),
-                nn.ReLU(),
-                nn.Dropout(0.1),
-                nn.Linear(hidden_size, self.num_classes),
-                )
-
+        channels, width, height = dims
+        self.model = MNISTModule(channels, height, width, hidden_size, num_classes)
         self.val_accuracy = Accuracy()
         self.test_accuracy = Accuracy()
         pass
 
     def forward(self, x):
         x = self.model(x)
-        return F.log_softmax(x, dim=1)
+        return func.log_softmax(x, dim=1)
 
     def training_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        loss = F.nll_loss(logits, y)
-        self.log("train_loss", loss, prog_bar=True)
+        loss = func.nll_loss(logits, y)
+        # self.log("train_loss", loss, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        loss = F.nll_loss(logits, y)
-        preds = torch.argmax(logits, dim=1)
-        self.val_accuracy.update(preds, y)
+        loss = func.nll_loss(logits, y)
+        prediction = torch.argmax(logits, dim=1)
+        self.val_accuracy.update(prediction, y)
 
-        # Calling self.log will surface up scalars for you in TensorBoard
         self.log("val_loss", loss, prog_bar=True)
         self.log("val_acc", self.val_accuracy, prog_bar=True)
 
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        loss = F.nll_loss(logits, y)
-        preds = torch.argmax(logits, dim=1)
-        self.test_accuracy.update(preds, y)
+        loss = func.nll_loss(logits, y)
+        prediction = torch.argmax(logits, dim=1)
+        self.test_accuracy.update(prediction, y)
 
-        # Calling self.log will surface up scalars for you in TensorBoard
         self.log("test_loss", loss, prog_bar=True)
         self.log("test_acc", self.test_accuracy, prog_bar=True)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
-        return optimizer
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
+        return [optimizer], [scheduler]
 
-    ####################
-    # DATA RELATED HOOKS
-    ####################
-
-    def prepare_data(self):
-        # download
-        MNIST(self.data_dir, train=True, download=True)
-        MNIST(self.data_dir, train=False, download=True)
-
-    def setup(self, stage=None):
-        # Assign train/val datasets for use in dataloaders
-        if stage == "fit" or stage is None:
-            mnist_full = MNIST(self.data_dir, train=True, transform=self.transform)
-            self.mnist_train, self.mnist_val = random_split(mnist_full, [55000, 5000])
-
-        # Assign test dataset for use in dataloader(s)
-        if stage == "test" or stage is None:
-            self.mnist_test = MNIST(self.data_dir, train=False, transform=self.transform)
-
-    def train_dataloader(self):
-        return DataLoader(
-                self.mnist_train,
-                shuffle=True,
-                batch_size=BATCH_SIZE,
-                num_workers=NUM_WORKERS
+    def optimizer_step(
+            self,
+            epoch: int,
+            batch_idx: int,
+            optimizer: Union[Optimizer, LightningOptimizer],
+            optimizer_idx: int = 0,
+            optimizer_closure: Optional[Callable[[], Any]] = None,
+            on_tpu: bool = False,
+            using_native_amp: bool = False,
+            using_lbfgs: bool = False,
+            ) -> None:
+        super(LitMNIST, self).optimizer_step(
+                epoch, batch_idx, optimizer, optimizer_idx, optimizer_closure
                 )
+        # self.log("learning rate", optimizer.param_groups[0]['lr'], prog_bar=True)
+        pass
 
-    def val_dataloader(self):
-        return DataLoader(self.mnist_val, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
-
-    def test_dataloader(self):
-        return DataLoader(self.mnist_test, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
+    def lr_scheduler_step(
+            self,
+            scheduler: LRSchedulerTypeUnion,
+            optimizer_idx: int,
+            metric: Optional[Any],
+            ) -> None:
+        super(LitMNIST, self).lr_scheduler_step(scheduler, optimizer_idx, metric)
+        pass
 
 
 def lit_mnist_main():
+    data_module = MNISTDataModule()
     model = LitMNIST()
     trainer = Trainer(
             accelerator="auto",
             devices=1 if torch.cuda.is_available() else None,
-            max_epochs=2,
+            max_epochs=20,
             callbacks=[TQDMProgressBar(refresh_rate=20)],
-            logger=CSVLogger(save_dir='logs/')
+            logger=CSVLogger(save_dir='logs/'),
             )
-    trainer.fit(model)
-    trainer.test()
+    trainer.fit(model, data_module)
+    trainer.test(model, data_module)
     metrics = pd.read_csv(f"{trainer.logger.log_dir}/metrics.csv")
     metrics.set_index("epoch", inplace=True)
     print(metrics.dropna(axis=1, how="all").head())
     sn.relplot(data=metrics, kind="line")
+    plt.show()
     pass
 
 
