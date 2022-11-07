@@ -27,62 +27,60 @@ from pytorch_lightning.callbacks import TQDMProgressBar
 from pytorch_lightning.cli import LRSchedulerTypeUnion
 from pytorch_lightning.core.optimizer import LightningOptimizer
 from pytorch_lightning.loggers import CSVLogger
-from torch.nn import functional as func
+from torch import nn
+from torch.nn import functional as F
 from torch.optim import Optimizer
 from torchmetrics import Accuracy
+from torchmetrics.functional import accuracy
 
 from data_module.mnist_data_module import MNISTDataModule
 from models.mnist_module import MNISTModule
 
 
-class LitMNIST(LightningModule):
-    def __init__(self,
-                 hidden_size=64,
-                 num_classes=10,
-                 dims=(1, 28, 28),
-                 learning_rate=2e-4,
-                 ):
+class LitMNISTModel(LightningModule):
+    def __init__(self, module: nn.Module, **kwargs):
         super().__init__()
         # Set our init args as class attributes
         self.save_hyperparameters()
-
-        # Hardcode some dataset specific attributes
-        channels, width, height = dims
-        self.model = MNISTModule(channels, height, width, hidden_size, num_classes)
+        self.model = module
         self.val_accuracy = Accuracy()
         self.test_accuracy = Accuracy()
         pass
 
     def forward(self, x):
         x = self.model(x)
-        return func.log_softmax(x, dim=1)
+        return F.log_softmax(x, dim=1)
 
     def training_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        loss = func.nll_loss(logits, y)
-        # self.log("train_loss", loss, prog_bar=True)
+        loss = F.nll_loss(logits, y)
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        loss = func.nll_loss(logits, y)
+        loss = F.nll_loss(logits, y)
         prediction = torch.argmax(logits, dim=1)
         self.val_accuracy.update(prediction, y)
+        accu = accuracy(prediction, y)
 
         self.log("val_loss", loss, prog_bar=True)
-        self.log("val_acc", self.val_accuracy, prog_bar=True)
+        self.log("val_acc1", self.val_accuracy, prog_bar=True)
+        self.log("val_acc2", accu, prog_bar=True)
+
 
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        loss = func.nll_loss(logits, y)
+        loss = F.nll_loss(logits, y)
         prediction = torch.argmax(logits, dim=1)
         self.test_accuracy.update(prediction, y)
+        accu = accuracy(prediction, y)
 
         self.log("test_loss", loss, prog_bar=True)
-        self.log("test_acc", self.test_accuracy, prog_bar=True)
+        self.log("test_acc1", self.test_accuracy, prog_bar=True)
+        self.log("test_acc2", accu, prog_bar=True)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
@@ -100,9 +98,7 @@ class LitMNIST(LightningModule):
             using_native_amp: bool = False,
             using_lbfgs: bool = False,
             ) -> None:
-        super(LitMNIST, self).optimizer_step(
-                epoch, batch_idx, optimizer, optimizer_idx, optimizer_closure
-                )
+        super().optimizer_step(epoch, batch_idx, optimizer, optimizer_idx, optimizer_closure)
         # self.log("learning rate", optimizer.param_groups[0]['lr'], prog_bar=True)
         pass
 
@@ -112,13 +108,15 @@ class LitMNIST(LightningModule):
             optimizer_idx: int,
             metric: Optional[Any],
             ) -> None:
-        super(LitMNIST, self).lr_scheduler_step(scheduler, optimizer_idx, metric)
+        super().lr_scheduler_step(scheduler, optimizer_idx, metric)
         pass
 
 
 def lit_mnist_main():
     data_module = MNISTDataModule()
-    model = LitMNIST()
+    dims = (1, 28, 28, 10)  # in_channels, in_height, in_width, out_channels(num_classes)
+    model = MNISTModule(dims)
+    lit_model = LitMNISTModel(model, learning_rate=2e-4)
     trainer = Trainer(
             accelerator="auto",
             devices=1 if torch.cuda.is_available() else None,
@@ -126,8 +124,8 @@ def lit_mnist_main():
             callbacks=[TQDMProgressBar(refresh_rate=20)],
             logger=CSVLogger(save_dir='logs/'),
             )
-    trainer.fit(model, data_module)
-    trainer.test(model, data_module)
+    trainer.fit(lit_model, data_module)
+    trainer.test(lit_model, data_module)
     metrics = pd.read_csv(f"{trainer.logger.log_dir}/metrics.csv")
     metrics.set_index("epoch", inplace=True)
     print(metrics.dropna(axis=1, how="all").head())
