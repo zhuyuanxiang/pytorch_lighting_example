@@ -1,12 +1,12 @@
 from argparse import ArgumentParser
 
-import torch
 import pytorch_lightning as pl
+import torch
 from torch.nn import functional as F
-from torch.utils.data import DataLoader, random_split
-
-from torchvision.datasets.mnist import MNIST
+from torch.utils.data import DataLoader
+from torch.utils.data import random_split
 from torchvision import transforms
+from torchvision.datasets.mnist import MNIST
 
 
 class LitClassifier(pl.LightningModule):
