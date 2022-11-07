@@ -19,18 +19,19 @@ from torch import nn
 
 
 class MNISTModule(nn.Module):
-    def __init__(self, channels, height, width, hidden_size, num_classes):
+    def __init__(self, dims, hidden_size=64, ):
         super(MNISTModule, self).__init__()
+        in_channels, in_height, in_width, out_channels = dims
         # Define PyTorch model
         self.model = nn.Sequential(
                 nn.Flatten(),
-                nn.Linear(channels * width * height, hidden_size),
+                nn.Linear(in_channels * in_width * in_height, hidden_size),
                 nn.ReLU(),
                 nn.Dropout(0.1),
                 nn.Linear(hidden_size, hidden_size),
                 nn.ReLU(),
                 nn.Dropout(0.1),
-                nn.Linear(hidden_size, num_classes),
+                nn.Linear(hidden_size, out_channels),
                 )
 
     def forward(self, x):
