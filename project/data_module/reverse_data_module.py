@@ -1,6 +1,6 @@
 """
 =================================================
-@path   : pytorch_lighting_example -> reverse_dataset
+@path   : pytorch_lighting_example -> reverse_data_module
 @IDE    : PyCharm
 @Author : zYx.Tom, 526614962@qq.com
 @Date   : 2022/11/2 15:57
@@ -74,13 +74,13 @@ class ReverseDataModule(LightningDataModule):
         return data.DataLoader(self.data_train, batch_size=128, shuffle=True, drop_last=True, pin_memory=True)
 
     def val_dataloader(self) -> EVAL_DATALOADERS:
-        return data.DataLoader(self.data_val, batch_size=128, shuffle=True, drop_last=True, pin_memory=True)
+        return data.DataLoader(self.data_val, batch_size=128, drop_last=True, pin_memory=True)
 
     def predict_dataloader(self) -> EVAL_DATALOADERS:
-        return data.DataLoader(self.data_test, batch_size=128, shuffle=True, drop_last=True, pin_memory=True)
+        return data.DataLoader(self.data_test, batch_size=128, drop_last=True, pin_memory=True)
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
-        return data.DataLoader(self.data_predict, batch_size=128, shuffle=True, drop_last=True, pin_memory=True)
+        return data.DataLoader(self.data_predict, batch_size=128, drop_last=True, pin_memory=True)
 
 
 # ----------------------------------------------------------------------
