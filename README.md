@@ -1,22 +1,5 @@
-### Deep learning project seed
-Use this seed to start new deep learning / ML projects.
-
-- Built in setup.py
-- Built in requirements
-- Examples with MNIST
-- Badges
-- Bibtex
-
-#### Goals  
-The goal of this seed is to structure ML paper-code the same so that work can easily be extended and replicated.   
-
-### DELETE EVERYTHING ABOVE FOR YOUR PROJECT  
- 
----
-
 <div align="center">    
- 
-# Your Project Name     
+# PyTorch Lightning Examples
 
 [![Paper](http://img.shields.io/badge/paper-arxiv.1001.2234-B31B1B.svg)](https://www.nature.com/articles/nature14539)
 [![Conference](http://img.shields.io/badge/NeurIPS-2019-4b44ce.svg)](https://papers.nips.cc/book/advances-in-neural-information-processing-systems-31-2018)
@@ -33,34 +16,39 @@ ARXIV
 Conference   
 -->   
 </div>
- 
-## Description   
-What it does   
 
-## How to run   
-First, install dependencies   
+## 描述   
+这是一个 pytorch lightning 的样例仓库，里面有帮助文件中的样例，也有工作需要使用的模型。   
+
+## 如何运行
+首先，安装依赖
+
 ```bash
 # clone project   
-git clone https://github.com/YourGithubName/deep-learning-project-template
+git clone https://github.com/zhuyuanxiang/pytorch_lighting_example
 
 # install project   
-cd deep-learning-project-template 
+cd pytorch_lighting_example 
 pip install -e .   
 pip install -r requirements.txt
- ```   
- Next, navigate to any file and run it.   
- ```bash
-# module folder
-cd project
-
-# run module (example: mnist as your main contribution)   
-python lit_classifier_main.py    
 ```
 
-## Imports
-This project is setup as a package which means you can now easily import any file into any other file like so:
+然后，浏览任意文件，并且运行它。
+
+```bash
+# 项目文件夹
+cd project
+
+# 运行模型
+python train_classifier.py    
+```
+
+## 导入
+
+项目作为包的设置可以轻松地导入任意的文件，如下：
+
 ```python
-from project.datasets.mnist import mnist
+from project.data_module.mnist import mnist
 from project.lit_classifier_main import LitClassifier
 from pytorch_lightning import Trainer
 
@@ -78,12 +66,13 @@ trainer.fit(model, train, val)
 trainer.test(test_dataloaders=test)
 ```
 
-### Citation   
-```
-@article{YourName,
-  title={Your Title},
-  author={Your team},
-  journal={Location},
-  year={Year}
+### Citation
+
+```txt
+@article{Zhuyx,
+  title={Pytorch-Lightning Examples},
+  author={zhuyuanxiang},
+  journal={China},
+  year={2022}
 }
-```   
+```
