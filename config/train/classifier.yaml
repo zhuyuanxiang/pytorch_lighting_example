@@ -1,0 +1,13 @@
+seed: 1234
+lit_classifier:
+  hidden_dim: 128
+  learning_rate: 0.0001
+trainer:
+  default_root_dir: "logs"
+  max_epochs: 1
+mnist_dataset:
+  batch_size: 32
+hydra:
+#  output_subdir: null  # hydra 配置文件的输出目录
+  run:
+    dir: logs/hydra_logs/${now:%Y-%m-%d}/${now:%H-%M-%S}  # 日志文件的输出目录
