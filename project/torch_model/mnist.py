@@ -38,13 +38,4 @@ class MNISTModule(nn.Module):
         return self.model(x)
 
 
-# ----------------------------------------------------------------------
-def main(name):
-    print(f'Hi, {name} 训练模型！', datetime.now())
-    pass
 
-
-# ----------------------------------------------------------------------
-if __name__ == "__main__":
-    __author__ = 'zYx.Tom'
-    main(__author__)
