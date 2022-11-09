@@ -1,3 +1,10 @@
+# My Files
+.history
+outputs/
+logs/hydra_logs/
+logs/lightning_logs/
+MNIST
+.DS_Store
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -34,7 +41,6 @@ default/
 data/
 test_tube_logs/
 test_tube_data/
-datasets/
 model_weights/
 tests/save_dir  
 tests/tests_tt_dir/
@@ -122,8 +128,3 @@ venv.bak/
 # IDEs
 .idea
 .vscode
-
-# seed project
-lightning_logs/
-MNIST
-.DS_Store

@@ -1,5 +1,9 @@
 seed: 1234
 lit_classifier:
+  in_channels: 1
+  out_channels: 10
+  in_height: 28
+  in_width: 28
   hidden_dim: 128
   learning_rate: 0.0001
 trainer:
@@ -7,6 +11,7 @@ trainer:
   max_epochs: 1
 mnist_dataset:
   batch_size: 32
+  num_workers: 0  # MNIST 无法并行读取数据，会报错“Failed to load image Python extension:”
 hydra:
   output_subdir: null  # hydra 配置文件的输出目录
   run:

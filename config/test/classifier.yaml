@@ -4,7 +4,9 @@ lit_classifier:
   learning_rate: 0.0001
 trainer:
   default_root_dir: "logs"
-  max_epochs: 1
+  limit_train_batches: 50
+  limit_val_batches: 20
+  max_epochs: 2
 mnist_dataset:
   batch_size: 32
 hydra:
