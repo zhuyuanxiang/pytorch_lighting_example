@@ -41,28 +41,35 @@ def test_frozen_config(config: SerialPort) -> None:
     print(config)
 
 
-@hydra.main(version_base=None, config_path=os.getcwd() + '/config/train', config_name='classifier')
+@hydra.main(version_base=None, config_path=os.getcwd() + '/config/train', config_name='tmp')
 def test_something(config: DictConfig):
     print(f"Current working directory : {os.getcwd()}")
     print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
     print(f"to_absolute_path('config')   : {hydra.utils.to_absolute_path('config/train')}")
     print(f"to_absolute_path('/config/train')  : {hydra.utils.to_absolute_path('/config/train')}")
-    assert isinstance(config.lit_classifier.learning_rate, float)
-    assert config['lit_classifier']['learning_rate'] == 0.0001
-    assert config.lit_classifier.learning_rate == 0.0001
+    assert isinstance(config.group1.float1, float)
+    assert config.group1.float1 == 0.0001
+    assert config['group1']['float1'] == 0.0001
 
-    assert config.trainer.default_root_dir == 'logs'
-    assert isinstance(config.trainer.default_root_dir, str)
+    assert isinstance(config.group2.str2, str)
+    assert config.group2.str2 == 'logs'
 
-    print(hydra.utils.HydraConfig.get_state())
+    assert isinstance(config.group1.int1, int)
+    assert config.group1.int1 == 1
+
+    print("config.group1.int1=", config.group1.int1)
+    print("config.group1.float1=", config.group1.float1)
+    print("config.group2.list2=", config.group2.list2)
+    print("config.group2.str2=", config.group2.str2)
+    # print(hydra.utils.HydraConfig.get_state())
     pass
 
 
 # ----------------------------------------------------------------------
 def main(name):
     print(f'Hi, {name} 训练模型！', datetime.now())
-    # test_something()
-    test_frozen_config()
+    test_something()
+    # test_frozen_config()
     pass
 
 
