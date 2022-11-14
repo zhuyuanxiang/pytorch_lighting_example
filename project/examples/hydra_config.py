@@ -12,7 +12,7 @@
 @Plan   :
 ==================================================
 """
-
+# import os
 import os
 from dataclasses import dataclass
 from datetime import datetime
@@ -20,6 +20,10 @@ from datetime import datetime
 import hydra
 from hydra.core.config_store import ConfigStore
 from omegaconf import DictConfig
+
+from toolbox import get_hydra_path
+
+HYDRA_PATH = get_hydra_path(os.path.dirname(__file__))
 
 
 @dataclass(frozen=True)
@@ -41,11 +45,11 @@ def test_frozen_config(config: SerialPort) -> None:
     print(config)
 
 
-@hydra.main(version_base=None, config_path=os.getcwd() + '/config/train', config_name='tmp')
+@hydra.main(version_base=None, config_path=HYDRA_PATH, config_name='tmp')
 def test_something(config: DictConfig):
     print(f"Current working directory : {os.getcwd()}")
     print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
-    print(f"to_absolute_path('config')   : {hydra.utils.to_absolute_path('config/train')}")
+    print(f"to_absolute_path('config')   : {hydra.utils.to_absolute_path('config')}")
     print(f"to_absolute_path('/config/train')  : {hydra.utils.to_absolute_path('/config/train')}")
     assert isinstance(config.group1.float1, float)
     assert config.group1.float1 == 0.0001
@@ -75,5 +79,7 @@ def main(name):
 
 # ----------------------------------------------------------------------
 if __name__ == "__main__":
+    print("FILE_PATH=", os.path.dirname(__file__))
+    print("HYDRA_PATH=", HYDRA_PATH)
     __author__ = 'zYx.Tom'
     main(__author__)

@@ -1,4 +1,5 @@
 seed: 1234
+datasets_path: 'datasets/'
 lit_classifier:
   in_channels: 1
   out_channels: 10

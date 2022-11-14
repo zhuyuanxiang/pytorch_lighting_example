@@ -1,4 +1,5 @@
 seed: 1234
+datasets_path: 'datasets/'
 lit_classifier:
   hidden_dim: 128
   learning_rate: 0.0001

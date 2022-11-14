@@ -12,10 +12,13 @@
 @Plan   :
 ==================================================
 """
+import os
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sn
+
+from parameters import PROJECT_PATH
 
 
 def show_metrics(logger_path: str):
@@ -30,3 +33,7 @@ def show_metrics(logger_path: str):
     sn.relplot(data=metrics, kind="line")
     plt.show()
     pass
+
+
+def get_hydra_path(file_path):
+    return os.path.relpath(os.path.join(PROJECT_PATH, 'config', 'train'), file_path)

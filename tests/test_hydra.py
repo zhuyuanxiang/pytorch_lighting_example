@@ -19,6 +19,11 @@ from hydra import compose
 from hydra import initialize
 from hydra import initialize_config_module
 
+from toolbox import get_hydra_path
+
+HYDRA_PATH = get_hydra_path(os.path.dirname(__file__))
+HYDRA_MODULE_PATH = 'config.train'
+
 
 class MyTestCase(unittest.TestCase):
     def test_with_initialize(self) -> None:
@@ -29,14 +34,15 @@ class MyTestCase(unittest.TestCase):
 
         :return:
         """
-        with initialize(version_base=None, config_path='../config/train'):
+        with initialize(version_base=None, config_path=HYDRA_PATH):
             config = compose(config_name='classifier')
             self.assertEqual(
                     config, {'seed': 1234,
-                             'lit_classifier': {'hidden_dim': 128, 'learning_rate': 0.0001},
+                             'datasets_path': 'datasets/',
+                             'lit_classifier': {'in_channels': 1, 'out_channels': 10, 'in_height': 28, 'in_width': 28,
+                                                'hidden_dim': 128, 'learning_rate': 0.0001},
                              'trainer': {'default_root_dir': 'logs', 'max_epochs': 1},
-                             'mnist_dataset': {'batch_size': 32}
-                             }
+                             'mnist_dataset': {'batch_size': 32, 'num_workers': 0}}
                     )
 
     def test_with_initialize_config_module(self) -> None:
@@ -48,16 +54,16 @@ class MyTestCase(unittest.TestCase):
 
         :return:
         """
-        # ToDo: config_module 无法完成
-        with initialize_config_module(version_base=None, config_module='config.train'):
+        with initialize_config_module(version_base=None, config_module=HYDRA_MODULE_PATH):
             # config is relative to a module
-            config = compose(config_name='classifier', overrides=["app.user=test_user"])
+            config = compose(config_name='classifier')
             self.assertEqual(
                     config, {'seed': 1234,
-                             'lit_classifier': {'hidden_dim': 128, 'learning_rate': 0.0001},
+                             'datasets_path': 'datasets/',
+                             'lit_classifier': {'in_channels': 1, 'out_channels': 10, 'in_height': 28, 'in_width': 28,
+                                                'hidden_dim': 128, 'learning_rate': 0.0001},
                              'trainer': {'default_root_dir': 'logs', 'max_epochs': 1},
-                             'mnist_dataset': {'batch_size': 32}
-                             }
+                             'mnist_dataset': {'batch_size': 32, 'num_workers': 0}}
                     )
 
 

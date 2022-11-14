@@ -1,15 +1,19 @@
 seed: 1234
-datasets_path: 'datasets/'
+path_datasets: 'datasets/' # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
+checkpoint_path: 'saved_models/Transformers/' # Path to the folder where the pretrained torch_model are saved
 lit_classifier:
   in_channels: 1
-  out_channels: 10
+  num_categories: 10
   in_height: 28
   in_width: 28
   hidden_dim: 128
   learning_rate: 0.0001
 trainer:
   default_root_dir: "logs"
-  max_epochs: 1
+  max_epochs: 30
+anomaly_dataset:
+  set_size: 10
+  batch_size: 64
 mnist_dataset:
   batch_size: 32
   num_workers: 0  # MNIST 无法并行读取数据，会报错“Failed to load image Python extension:”
