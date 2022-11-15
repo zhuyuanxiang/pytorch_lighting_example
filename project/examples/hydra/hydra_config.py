@@ -12,7 +12,6 @@
 @Plan   :
 ==================================================
 """
-# import os
 import os
 from dataclasses import dataclass
 from datetime import datetime
@@ -20,6 +19,7 @@ from datetime import datetime
 import hydra
 from hydra.core.config_store import ConfigStore
 from omegaconf import DictConfig
+from omegaconf import OmegaConf
 
 from toolbox import get_hydra_path
 
@@ -45,7 +45,8 @@ def test_frozen_config(config: SerialPort) -> None:
     print(config)
 
 
-@hydra.main(version_base=None, config_path=HYDRA_PATH, config_name='tmp')
+# @hydra.main(version_base=None, config_path=HYDRA_PATH, config_name='tmp')
+@hydra.main(config_path=HYDRA_PATH, config_name='tmp')
 def test_something(config: DictConfig):
     print(f"Current working directory : {os.getcwd()}")
     print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
@@ -69,11 +70,18 @@ def test_something(config: DictConfig):
     pass
 
 
+@hydra.main(version_base=None, config_path=os.path.join(os.getcwd(), 'config'),config_name='train')
+def test_group(config):
+    print(OmegaConf.to_yaml(config))
+    pass
+
+
 # ----------------------------------------------------------------------
 def main(name):
     print(f'Hi, {name} 训练模型！', datetime.now())
     test_something()
     # test_frozen_config()
+    # test_group()
     pass
 
 
