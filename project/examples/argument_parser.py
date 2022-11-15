@@ -44,7 +44,7 @@ def main(config):
                 parser.add_argument('--' + j, type=type(value), default=value)
     if TRAINER_NAME is config:
         for j in config[TRAINER_NAME]:
-            value = config[MODULE_NAME][j]
+            value = config[TRAINER_NAME][j]
             if j in parser.parse_args():
                 parser.set_defaults(j=value)
             else:
