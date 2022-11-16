@@ -72,10 +72,10 @@ cs = ConfigStore.instance()
 cs.store(name="classifier", node=TrainClassifier)
 cs.store(name="mnist", node=TrainMNIST)
 cs.store(name="transformer", node=TrainTransformer)
-cs.store(name='test_hydra', node=TrainTransformer)
+cs.store(name='hydra_config', node=TrainTransformer)
 
 
-@hydra.main(version_base="1.2", config_path=os.path.join(os.getcwd(), 'config'), config_name="test_hydra")
+@hydra.main(version_base="1.2", config_path=os.path.join(os.getcwd(), 'config'), config_name="hydra_config")
 def my_app(cfg: TrainTransformer) -> None:
     print(OmegaConf.to_yaml(cfg))
     # print(f"seed={cfg.seed}, dataset={cfg.dataset.batch_size}")

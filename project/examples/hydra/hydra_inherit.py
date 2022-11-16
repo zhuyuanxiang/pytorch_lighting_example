@@ -31,12 +31,16 @@ class DBConfig:
 class MySQLConfig(DBConfig):
     driver: str = "mysql"
     port: int = 3306
+    user: str = MISSING
+    password: str = MISSING
 
 
 @dataclass
 class PostGreSQLConfig(DBConfig):
     driver: str = "postgresql"
+    user: str = MISSING
     port: int = 5432
+    password: str = MISSING
     timeout: int = 10
 
 
@@ -44,8 +48,8 @@ class PostGreSQLConfig(DBConfig):
 class Config:
     # We can now annotate db as DBConfig which
     # improves both static and dynamic type safety.
-    tmp_value: int = MISSING
     db: DBConfig = MISSING
+    debug: bool = False
 
 
 @dataclass
@@ -60,14 +64,14 @@ class BConfig:  # 继承不能在最终类上使用，否则无法初始化。
 
 
 cs = ConfigStore.instance()
-cs.store(name="config", node=Config)
+cs.store(name="base_config", node=Config)
 # cs.store(name="config_inherit", node=AConfig)
 cs.store(name="config_inherit", node=BConfig)
-cs.store(group="db", name="mysql", node=MySQLConfig)
-cs.store(group="db", name="postgresql", node=PostGreSQLConfig)
+cs.store(group="db", name="base_mysql", node=MySQLConfig)
+cs.store(group="db", name="base_postgresql", node=PostGreSQLConfig)
 
 
-@hydra.main(version_base=None, config_name="config_inherit")
+@hydra.main(version_base=None, config_path='conf', config_name="config")
 def my_app(cfg: Config) -> None:
     print(OmegaConf.to_yaml(cfg))
 
