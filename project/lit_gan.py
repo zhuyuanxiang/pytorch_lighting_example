@@ -13,35 +13,68 @@
 ==================================================
 """
 
+from dataclasses import dataclass
+
 import hydra
 import pytorch_lightning as pl
 import torch
+from hydra.core.config_store import ConfigStore
 from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks.progress import TQDMProgressBar
+from pytorch_lightning.callbacks import TQDMProgressBar
 
-from data_module.mnist import MNISTDataModule
+from hydra_conf.datasets import MNISTDataset
+from hydra_conf.lit_config import LitConfig
+from hydra_conf.train_config import Config
+from hydra_conf.trainer_config import TrainerConfig
+from lit_data_module.mnist import MNISTDataModule
 from lit_model.gan import GAN
+from parameters import HYDRA_PATH
+
+
+@dataclass
+class LitGAN(LitConfig):
+    checkpoint_path: str = 'saved_models/MNIST/'
+    pass
+
+
+@dataclass
+class TrainerGAN(TrainerConfig):
+    max_epochs: int = 52
+    pass
+
+
+@dataclass
+class ConfigGAN(Config):
+    trainer: TrainerGAN = TrainerGAN
+    dataset: MNISTDataset = MNISTDataset
+    lit_gan: LitGAN = LitGAN
+    pass
+
+
+cs = ConfigStore.instance()
+cs.store(name="base_config", node=ConfigGAN)
 
 
 # ----------------------------------------------------------------------
-@hydra.main(version_base=None, config_path='../config/train', config_name='gan')
-def lit_mnist_main(config):
+@hydra.main(version_base=None, config_path=HYDRA_PATH, config_name='train_model')
+def lit_mnist_main(config: ConfigGAN):
     pl.seed_everything(config.seed)
     dm = MNISTDataModule(
-            batch_size=config.mnist_dataset.batch_size,
-            num_workers=config.mnist_dataset.num_workers,
+            data_dir=config.dataset.path,
+            batch_size=config.dataset.batch_size,
+            num_workers=config.dataset.num_workers,
             )
     model = GAN(
             dims=(
-                    config.lit_classifier.in_channels,
-                    config.lit_classifier.in_height,
-                    config.lit_classifier.in_width
+                    config.lit_gan.in_channels,
+                    config.lit_gan.in_height,
+                    config.lit_gan.in_width
                     )
             )
     trainer = Trainer(
             default_root_dir=config.trainer.default_root_dir,
             accelerator="auto",
-            devices=1 if torch.cuda.is_available() else None,  # limiting got iPython runs
+            devices=1 if torch.cuda.is_available() else None,
             max_epochs=config.trainer.max_epochs,
             callbacks=[TQDMProgressBar(refresh_rate=10)],
             )
