@@ -1,6 +1,6 @@
 """
 =================================================
-@path   : pytorch_lighting_example -> lit_gan
+@path   : pytorch_lighting_example -> train_gan
 @IDE    : PyCharm
 @Author : zYx.Tom, 526614962@qq.com
 @Date   : 2022/10/27 17:12
