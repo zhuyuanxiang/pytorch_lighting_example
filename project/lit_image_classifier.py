@@ -1,100 +1,103 @@
-from argparse import ArgumentParser
+"""
+=================================================
+@path   : pytorch_lighting_example -> lit_image_classifier
+@IDE    : PyCharm
+@Author : zYx.Tom, 526614962@qq.com
+@Date   : 2022/10/24 17:29
+@Version: v0.1
+@License: (C)Copyright 2020-2022, SoonSolid
+@Reference:
+@Desc   :
+@History:
+@Plan   :
+ToDo: 完成从config中更新到args中的过程，实现用参数生成Trainer()
+==================================================
+"""
 
-import torch
+import argparse
+from dataclasses import dataclass
+
+import hydra
 import pytorch_lightning as pl
-from torch.nn import functional as F
-from torch.utils.data import DataLoader, random_split
-
-from torchvision.datasets.mnist import MNIST
+from hydra.core.config_store import ConfigStore
+from torch.utils.data import DataLoader
+from torch.utils.data import random_split
 from torchvision import transforms
+from torchvision.datasets.mnist import MNIST
+
+from hydra_conf.datasets import DatasetConfig
+from hydra_conf.datasets import MNISTDataset
+from hydra_conf.lit_config import LitConfig
+from hydra_conf.train_config import Config
+from hydra_conf.trainer_config import TrainerConfig
+from lit_model.classifier import LitModuleBackboneClassifier
+from parameters import HYDRA_PATH
+
+TRAINER_NAME = 'train'
 
 
-class Backbone(torch.nn.Module):
-    def __init__(self, hidden_dim=128):
-        super().__init__()
-        self.l1 = torch.nn.Linear(28 * 28, hidden_dim)
-        self.l2 = torch.nn.Linear(hidden_dim, 10)
-
-    def forward(self, x):
-        x = x.view(x.size(0), -1)
-        x = torch.relu(self.l1(x))
-        x = torch.relu(self.l2(x))
-        return x
+@dataclass
+class LitClassifier(LitConfig):
+    checkpoint_path: str = 'saved_models/Classifier/'
+    pass
 
 
-class LitClassifier(pl.LightningModule):
-    def __init__(self, backbone, learning_rate=1e-3):
-        super().__init__()
-        self.save_hyperparameters()
-        self.backbone = backbone
-
-    def forward(self, x):
-        # use forward for inference/predictions
-        embedding = self.backbone(x)
-        return embedding
-
-    def training_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self.backbone(x)
-        loss = F.cross_entropy(y_hat, y)
-        self.log('train_loss', loss, on_epoch=True)
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self.backbone(x)
-        loss = F.cross_entropy(y_hat, y)
-        self.log('valid_loss', loss, on_step=True)
-
-    def test_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self.backbone(x)
-        loss = F.cross_entropy(y_hat, y)
-        self.log('test_loss', loss)
-
-    def configure_optimizers(self):
-        # self.hparams available because we called self.save_hyperparameters()
-        return torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
-
-    @staticmethod
-    def add_model_specific_args(parent_parser):
-        parser = ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument('--batch_size', default=32, type=int)
-        parser.add_argument('--hidden_dim', type=int, default=128)
-        parser.add_argument('--learning_rate', type=float, default=0.0001)
-        return parser
+@dataclass
+class TrainerClassifier(TrainerConfig):
+    max_epochs: int = 1
+    pass
 
 
-def cli_main():
-    pl.seed_everything(1234)
+@dataclass
+class ConfigClassifier(Config):
+    trainer: TrainerConfig = TrainerClassifier
+    dataset: DatasetConfig = MNISTDataset
+    lit_classifier: LitConfig = LitClassifier
+    pass
 
-    # ------------
-    # args
-    # ------------
-    parser = ArgumentParser()
+
+cs = ConfigStore.instance()
+cs.store(name="base_config", node=ConfigClassifier)
+
+
+@hydra.main(version_base=None, config_path=HYDRA_PATH, config_name='train_model')
+def cli_main(config:ConfigClassifier):
+    parser = argparse.ArgumentParser(
+            prog='train_mnist_classifier',
+            description='pytorch-lightning mnist classifier example',
+            epilog='contact with zhuyuanxiang@gmail.com'
+            )
     parser = pl.Trainer.add_argparse_args(parser)
-    parser = LitClassifier.add_model_specific_args(parser)
-    args = parser.parse_args()
+    if TRAINER_NAME is config:
+        for flag in config[TRAINER_NAME]:
+            value = config[TRAINER_NAME][flag]
+            if flag in parser.parse_args():
+                parser.set_defaults(flag=value)
+            else:
+                parser.add_argument('--' + flag, type=type(value), default=value)
+
+    pl.seed_everything(config.seed)
 
     # ------------
-    # data
+    # datasets
     # ------------
-    dataset = MNIST('', train=True, download=True, transform=transforms.ToTensor())
-    mnist_test = MNIST('', train=False, download=True, transform=transforms.ToTensor())
+    dataset = MNIST(root=config.dataset.path, train=True, download=True, transform=transforms.ToTensor())
+    mnist_test = MNIST(root=config.dataset.path, train=False, download=True, transform=transforms.ToTensor())
     mnist_train, mnist_val = random_split(dataset, [55000, 5000])
 
-    train_loader = DataLoader(mnist_train, batch_size=args.batch_size)
-    val_loader = DataLoader(mnist_val, batch_size=args.batch_size)
-    test_loader = DataLoader(mnist_test, batch_size=args.batch_size)
+    train_loader = DataLoader(mnist_train, batch_size=config.dataset.batch_size)
+    val_loader = DataLoader(mnist_val, batch_size=config.dataset.batch_size)
+    test_loader = DataLoader(mnist_test, batch_size=config.dataset.batch_size)
 
     # ------------
     # model
     # ------------
-    model = LitClassifier(Backbone(hidden_dim=args.hidden_dim), args.learning_rate)
+    model = LitModuleBackboneClassifier(config.lit_classifier.hidden_dim, config.lit_classifier.learning_rate)
 
     # ------------
     # training
     # ------------
+    args = parser.parse_args()
     trainer = pl.Trainer.from_argparse_args(args)
     trainer.fit(model, train_loader, val_loader)
 

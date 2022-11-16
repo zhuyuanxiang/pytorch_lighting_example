@@ -81,7 +81,7 @@ class Backbone(torch.nn.Module):
         return x
 
 
-class LitBackboneClassifier(pl.LightningModule):
+class LitModuleBackboneClassifier(pl.LightningModule):
     def __init__(self, hidden_dim=128, learning_rate=1e-3):
         super().__init__()
         self.save_hyperparameters()
