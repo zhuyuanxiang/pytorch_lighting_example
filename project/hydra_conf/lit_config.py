@@ -14,6 +14,8 @@
 """
 from dataclasses import dataclass
 
+from omegaconf import MISSING
+
 
 @dataclass
 class LitConfig:
@@ -23,4 +25,5 @@ class LitConfig:
     in_width: int = 28
     hidden_dim: int = 128
     learning_rate: float = 0.0001
+    checkpoint_path: str = MISSING  # Path to the folder where the pretrained torch_model are saved
     pass

@@ -1,28 +1,62 @@
-from argparse import ArgumentParser
+from dataclasses import dataclass
 
 import hydra
 import pytorch_lightning as pl
+from hydra.core.config_store import ConfigStore
 
-from data_module.mnist import mnist
-from lit_model.classifier import LitClassifier
+from hydra_conf.datasets import DatasetConfig
+from hydra_conf.datasets import MNISTDataset
+from hydra_conf.lit_config import LitConfig
+from hydra_conf.train_config import Config
+from hydra_conf.trainer_config import TrainerConfig
+from lit_model.classifier import LitModuleClassifier
+from parameters import HYDRA_PATH
+from torch_datasets.mnist import mnist
 
 
-@hydra.main(version_base=None, config_path='../config/train', config_name="classifier")
-def cli_main(config):
+@dataclass
+class LitClassifier(LitConfig):
+    checkpoint_path: str = 'saved_models/Classifier/'
+    pass
+
+
+@dataclass
+class TrainerClassifier(TrainerConfig):
+    max_epochs: int = 51
+    pass
+
+
+@dataclass
+class ConfigClassifier(Config):
+    trainer: TrainerConfig = TrainerClassifier
+    dataset: DatasetConfig = MNISTDataset
+    lit_classifier: LitConfig = LitClassifier
+    pass
+
+
+cs = ConfigStore.instance()
+cs.store(name="base_config", node=ConfigClassifier)
+
+
+@hydra.main(version_base=None, config_path=HYDRA_PATH, config_name="train_model")
+def cli_main(config: ConfigClassifier):
     pl.seed_everything(config.seed)
 
     # ------------
-    # data
+    # datasets
     # ------------
-    train, val, test = mnist(config.mnist_dataset.batch_size)
+    train_loader, val_loader, test_loader = mnist(
+            config.dataset.batch_size,
+            config.dataset.path
+            )
 
     # ------------
     # model
     # ------------
-    model = LitClassifier(
-        config.lit_classifier.hidden_dim,
-        config.lit_classifier.learning_rate
-        )
+    model = LitModuleClassifier(
+            config.lit_classifier.hidden_dim,
+            config.lit_classifier.learning_rate
+            )
 
     # ------------
     # training
@@ -31,12 +65,12 @@ def cli_main(config):
             default_root_dir=config.trainer.default_root_dir,
             max_epochs=config.trainer.max_epochs
             )
-    trainer.fit(model, train, val)
+    trainer.fit(model, train_loader, val_loader)
 
     # ------------
     # testing
     # ------------
-    trainer.test(model, test)
+    trainer.test(model, test_loader)
 
 
 if __name__ == '__main__':

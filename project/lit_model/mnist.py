@@ -12,7 +12,7 @@
 @Plan   :
 ==================================================
 """
-
+from argparse import ArgumentParser
 from typing import Any
 from typing import Callable
 from typing import Optional
@@ -22,19 +22,21 @@ import torch
 from pytorch_lightning import LightningModule
 from pytorch_lightning.cli import LRSchedulerTypeUnion
 from pytorch_lightning.core.optimizer import LightningOptimizer
-from torch import nn
 from torch.nn import functional as F
 from torch.optim import Optimizer
 from torchmetrics import Accuracy
 from torchmetrics.functional import accuracy
 
+from torch_model.mnist import MNISTModule
+
 
 class LitMNISTModel(LightningModule):
-    def __init__(self, module: nn.Module, learning_rate=1e-4, **kwargs):
+    def __init__(self, dims, learning_rate=1e-4, **kwargs):
         super().__init__(**kwargs)
         # Set our init args as class attributes
         self.save_hyperparameters()
-        self.model = module
+        self.model = MNISTModule(dims)
+
         self.val_accuracy = Accuracy()
         self.test_accuracy = Accuracy()
         pass

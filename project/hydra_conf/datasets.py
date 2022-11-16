@@ -18,34 +18,19 @@ from hydra.core.config_store import ConfigStore
 
 
 @dataclass
-class Dataset:
-    path: str = 'datasets'
-    batch_size: int = 32
+class DatasetConfig:
+    path: str = 'datasets'  # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
+    batch_size: int = 32    # 数据集每个批次加载数据的个数
     num_workers: int = 0  # MNIST 无法并行读取数据，会报错“Failed to load image Python extension:”
     pass
 
 
 @dataclass
-class MNISTDataset(Dataset):
+class MNISTDataset(DatasetConfig):
     pass
 
 
 @dataclass
-class AnomalyDataset(Dataset):
+class AnomalyDataset(DatasetConfig):
     set_size: int = 10
-    pass
-
-
-def register_configs() -> None:
-    cs = ConfigStore.instance()
-    cs.store(
-            group="datasets",
-            name="mnist",
-            node=MNISTDataset,
-            )
-    cs.store(
-            group="datasets",
-            name="anomaly",
-            node=AnomalyDataset,
-            )
     pass

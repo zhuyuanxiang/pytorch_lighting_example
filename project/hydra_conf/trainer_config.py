@@ -1,6 +1,6 @@
 """
 =================================================
-@path   : pytorch_lighting_example -> train
+@path   : pytorch_lighting_example -> trainer_config
 @IDE    : PyCharm
 @Author : zYx.Tom, 526614962@qq.com
 @Date   : 2022/11/15 14:29
@@ -14,16 +14,11 @@
 """
 from dataclasses import dataclass
 
-from hydra.core.config_store import ConfigStore
+from omegaconf import MISSING
 
 
 @dataclass
-class Trainer:
+class TrainerConfig:
     default_root_dir: str = "logs"
-    max_epochs: int = 1
+    max_epochs: int = MISSING
     pass
-
-
-# cs = ConfigStore.instance()
-# # Registering the Config class with the name 'config'.
-# cs.store(name="trainer", node=Trainer)

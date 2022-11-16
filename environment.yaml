@@ -247,7 +247,7 @@ dependencies:
   - sqlite=3.39.3
   - statsmodels=0.13.2
   - tensorboard=2.10.1
-  - tensorboard-data-server=0.6.0
+  - tensorboard-datasets-server=0.6.0
   - tensorboard-plugin-wit=1.8.1
   - terminado=0.13.1
   - testpath=0.6.0
