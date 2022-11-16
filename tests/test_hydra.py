@@ -18,14 +18,24 @@ import unittest
 from hydra import compose
 from hydra import initialize
 from hydra import initialize_config_module
+from hydra.core.config_store import ConfigStore
 
+from hydra_conf.train_config import ConfigMNIST
 from toolbox import get_hydra_path
 
 HYDRA_PATH = get_hydra_path(os.path.dirname(__file__))
 HYDRA_MODULE_PATH = 'config.train'
 
+cs = ConfigStore.instance()
+cs.store(name="base_config", node=ConfigMNIST)
+
 
 class MyTestCase(unittest.TestCase):
+    def test_hierarchy(self) -> None:
+        with initialize(version_base='1.2', config_path='../config'):
+            config = compose(config_name='train_model')
+            print("config.trainer=",config.trainer)
+
     def test_with_initialize(self) -> None:
         """
         1. initialize will add config_path the config search path within the context
@@ -41,7 +51,7 @@ class MyTestCase(unittest.TestCase):
                              'datasets_path': 'datasets/',
                              'lit_classifier': {'in_channels': 1, 'out_channels': 10, 'in_height': 28, 'in_width': 28,
                                                 'hidden_dim': 128, 'learning_rate': 0.0001},
-                             'trainer': {'default_root_dir': 'logs', 'max_epochs': 1},
+                             'train': {'default_root_dir': 'logs', 'max_epochs': 1},
                              'mnist_dataset': {'batch_size': 32, 'num_workers': 0}}
                     )
 
@@ -62,7 +72,7 @@ class MyTestCase(unittest.TestCase):
                              'datasets_path': 'datasets/',
                              'lit_classifier': {'in_channels': 1, 'out_channels': 10, 'in_height': 28, 'in_width': 28,
                                                 'hidden_dim': 128, 'learning_rate': 0.0001},
-                             'trainer': {'default_root_dir': 'logs', 'max_epochs': 1},
+                             'train': {'default_root_dir': 'logs', 'max_epochs': 1},
                              'mnist_dataset': {'batch_size': 32, 'num_workers': 0}}
                     )
 
