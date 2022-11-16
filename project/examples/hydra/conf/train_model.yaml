@@ -1,0 +1,11 @@
+defaults:
+  - base_config
+  # See composition order note
+  - _self_
+
+seed: 1234
+debug: true
+hydra:
+  output_subdir: null  # hydra 配置文件的输出目录
+  run:
+    dir: logs/hydra_logs/${now:%Y-%m-%d}/${now:%H-%M-%S}  # 日志文件的输出目录
