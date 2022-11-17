@@ -14,13 +14,11 @@
 """
 from dataclasses import dataclass
 
-from hydra.core.config_store import ConfigStore
-
 
 @dataclass
 class DatasetConfig:
     path: str = 'datasets'  # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
-    batch_size: int = 32    # 数据集每个批次加载数据的个数
+    batch_size: int = 32  # 数据集每个批次加载数据的个数
     num_workers: int = 0  # MNIST 无法并行读取数据，会报错“Failed to load image Python extension:”
     pass
 
@@ -33,4 +31,12 @@ class MNISTDataset(DatasetConfig):
 @dataclass
 class AnomalyDataset(DatasetConfig):
     set_size: int = 10
+    pass
+
+
+@dataclass
+class ReverseDataset(DatasetConfig):
+    num_categories: int = 10
+    sequence_len: int = 16
+
     pass

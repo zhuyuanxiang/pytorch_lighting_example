@@ -22,3 +22,27 @@ class TrainerConfig:
     default_root_dir: str = "logs"
     max_epochs: int = MISSING
     pass
+
+
+@dataclass
+class TrainerTransformer(TrainerConfig):
+    max_epochs: int = 53
+    pass
+
+
+@dataclass
+class TrainerClassifier(TrainerConfig):
+    max_epochs: int = 51
+    pass
+
+
+@dataclass
+class TrainerMNIST(TrainerConfig):
+    max_epochs: int = 52
+    pass
+
+
+@dataclass
+class TrainerGAN(TrainerConfig):
+    max_epochs: int = 52
+    pass
