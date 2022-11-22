@@ -20,16 +20,16 @@ from dataclasses import dataclass
 import hydra
 import pytorch_lightning as pl
 from hydra.core.config_store import ConfigStore
+from omegaconf import DictConfig
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
 from torchvision import transforms
 from torchvision.datasets.mnist import MNIST
 
-from hydra_conf.datasets import DatasetConfig
 from hydra_conf.datasets import MNISTDataset
-from hydra_conf.lit_config import LitConfig
+from hydra_conf.lit_config import LitClassifier
 from hydra_conf.train_config import Config
-from hydra_conf.trainer_config import TrainerConfig
+from hydra_conf.trainer_config import TrainerClassifier
 from lit_model.classifier import LitModuleBackboneClassifier
 from parameters import HYDRA_PATH
 
@@ -37,22 +37,10 @@ TRAINER_NAME = 'train'
 
 
 @dataclass
-class LitClassifier(LitConfig):
-    checkpoint_path: str = 'saved_models/Classifier/'
-    pass
-
-
-@dataclass
-class TrainerClassifier(TrainerConfig):
-    max_epochs: int = 1
-    pass
-
-
-@dataclass
 class ConfigClassifier(Config):
-    trainer: TrainerConfig = TrainerClassifier
-    dataset: DatasetConfig = MNISTDataset
-    lit_classifier: LitConfig = LitClassifier
+    trainer: TrainerClassifier = TrainerClassifier
+    dataset: MNISTDataset = MNISTDataset
+    lit_module: LitClassifier = LitClassifier
     pass
 
 
@@ -60,21 +48,26 @@ cs = ConfigStore.instance()
 cs.store(name="base_config", node=ConfigClassifier)
 
 
-@hydra.main(version_base=None, config_path=HYDRA_PATH, config_name='train_model')
-def cli_main(config:ConfigClassifier):
+@hydra.main(version_base='1.2', config_path=HYDRA_PATH, config_name='train_model')
+def cli_main(config: ConfigClassifier):
     parser = argparse.ArgumentParser(
             prog='train_mnist_classifier',
             description='pytorch-lightning mnist classifier example',
             epilog='contact with zhuyuanxiang@gmail.com'
             )
-    parser = pl.Trainer.add_argparse_args(parser)
-    if TRAINER_NAME is config:
-        for flag in config[TRAINER_NAME]:
-            value = config[TRAINER_NAME][flag]
-            if flag in parser.parse_args():
-                parser.set_defaults(flag=value)
-            else:
-                parser.add_argument('--' + flag, type=type(value), default=value)
+    args = pl.Trainer.add_argparse_args(parser).parse_args()
+    for name in config:
+        if type(config[name]) is DictConfig:
+            for flag in config[name]:
+                value = config[name][flag]
+                args.__setattr__(flag, value)
+                pass
+        else:
+            flag = name
+            value = config[name]
+            args.__setattr__(flag, value)
+            pass
+        pass
 
     pl.seed_everything(config.seed)
 
@@ -92,20 +85,21 @@ def cli_main(config:ConfigClassifier):
     # ------------
     # model
     # ------------
-    model = LitModuleBackboneClassifier(config.lit_classifier.hidden_dim, config.lit_classifier.learning_rate)
+    model = LitModuleBackboneClassifier(config.lit_module.hidden_dim, config.lit_module.optimizer.learning_rate)
 
     # ------------
     # training
     # ------------
-    args = parser.parse_args()
+    print(args)
     trainer = pl.Trainer.from_argparse_args(args)
     trainer.fit(model, train_loader, val_loader)
 
     # ------------
     # testing
     # ------------
-    result = trainer.test(test_dataloaders=test_loader)
+    result = trainer.test(model, test_loader)
     print(result)
+    pass
 
 
 if __name__ == '__main__':
