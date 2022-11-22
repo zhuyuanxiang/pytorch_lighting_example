@@ -20,33 +20,20 @@ from hydra.core.config_store import ConfigStore
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import TQDMProgressBar
 
-from hydra_conf.datasets import DatasetConfig
 from hydra_conf.datasets import MNISTDataset
-from hydra_conf.lit_config import LitConfig
+from hydra_conf.lit_config import LitMNIST
 from hydra_conf.train_config import Config
-from hydra_conf.trainer_config import TrainerConfig
+from hydra_conf.trainer_config import TrainerMNIST
 from lit_data_module.mnist import MNISTDataModule
 from lit_model.mnist import LitMNISTModel
 from parameters import HYDRA_PATH
 
 
 @dataclass
-class LitMNIST(LitConfig):
-    checkpoint_path: str = 'saved_models/MNIST/'
-    pass
-
-
-@dataclass
-class TrainerMNIST(TrainerConfig):
-    max_epochs: int = 52
-    pass
-
-
-@dataclass
 class ConfigMNIST(Config):
-    trainer: TrainerConfig = TrainerMNIST
-    dataset: DatasetConfig = MNISTDataset
-    lit_mnist: LitConfig = LitMNIST
+    trainer: TrainerMNIST = TrainerMNIST
+    dataset: MNISTDataset = MNISTDataset
+    lit_module: LitMNIST = LitMNIST
     pass
 
 
@@ -62,12 +49,12 @@ def lit_mnist_main(config: ConfigMNIST):
             num_workers=config.dataset.num_workers
             )
     dims = (
-            config.lit_mnist.in_channels,
-            config.lit_mnist.in_height,
-            config.lit_mnist.in_width,
-            config.lit_mnist.num_categories
+            config.lit_module.input_channels,
+            config.lit_module.input_height,
+            config.lit_module.input_width,
+            config.lit_module.num_categories
             )
-    lit_model = LitMNISTModel(dims, learning_rate=config.lit_mnist.learning_rate)
+    lit_model = LitMNISTModel(dims, learning_rate=config.lit_module.optimizer.learning_rate)
     trainer = Trainer(
             accelerator="auto",
             devices=1 if torch.cuda.is_available() else None,
