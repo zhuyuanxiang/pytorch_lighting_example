@@ -42,6 +42,11 @@ class PostGreSQLConfig(DBConfig):
     timeout: int = 10
 
 
+defaults = [
+        {"db": "mysql"}
+        ]
+
+
 @dataclass
 class Config:
     # We can now annotate db as DBConfig which
@@ -51,9 +56,9 @@ class Config:
 
 
 cs = ConfigStore.instance()
+cs.store(name="base_config", node=Config)
 cs.store(group="db", name="base_mysql", node=MySQLConfig)
 cs.store(group="db", name="base_postgresql", node=PostGreSQLConfig)
-cs.store(name="base_config", node=Config)
 
 
 @hydra.main(version_base=None, config_path='conf', config_name="config")

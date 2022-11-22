@@ -1,6 +1,7 @@
 defaults:
   - base_config
   - db: mysql
+  - override hydra/help: my_app_help
   # See composition order note
   - _self_
 
