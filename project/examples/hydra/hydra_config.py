@@ -21,9 +21,7 @@ from hydra.core.config_store import ConfigStore
 from omegaconf import DictConfig
 from omegaconf import OmegaConf
 
-from toolbox import get_hydra_path
-
-HYDRA_PATH = get_hydra_path(os.path.dirname(__file__))
+from parameters import HYDRA_PATH
 
 
 @dataclass(frozen=True)
@@ -45,8 +43,7 @@ def test_frozen_config(config: SerialPort) -> None:
     print(config)
 
 
-# @hydra.main(version_base=None, config_path=HYDRA_PATH, config_name='tmp')
-@hydra.main(config_path=HYDRA_PATH, config_name='tmp')
+@hydra.main(version_base='1.2', config_path=HYDRA_PATH, config_name='test_hydra')
 def test_something(config: DictConfig):
     print(f"Current working directory : {os.getcwd()}")
     print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
@@ -66,11 +63,11 @@ def test_something(config: DictConfig):
     print("config.group1.float1=", config.group1.float1)
     print("config.group2.list2=", config.group2.list2)
     print("config.group2.str2=", config.group2.str2)
-    # print(hydra.utils.HydraConfig.get_state())
+    print(hydra.utils.HydraConfig.get_state())
     pass
 
 
-@hydra.main(version_base=None, config_path=os.path.join(os.getcwd(), 'config'),config_name='train')
+@hydra.main(version_base=None, config_path=os.path.join(os.getcwd(), 'config'), config_name='test_hydra')
 def test_group(config):
     print(OmegaConf.to_yaml(config))
     pass

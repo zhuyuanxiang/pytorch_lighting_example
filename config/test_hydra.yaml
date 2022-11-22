@@ -1,3 +1,10 @@
+group1:
+  float1: 0.0001
+  int1: 1
+group2:
+  list2: [0,1,2]
+  str2: logs
+
 hydra:
   output_subdir: null  # hydra 配置文件的输出目录
   run:
