@@ -23,31 +23,19 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import TQDMProgressBar
 
 from hydra_conf.datasets import MNISTDataset
-from hydra_conf.lit_config import LitConfig
+from hydra_conf.lit_config import LitGAN
 from hydra_conf.train_config import Config
-from hydra_conf.trainer_config import TrainerConfig
+from hydra_conf.trainer_config import TrainerGAN
 from lit_data_module.mnist import MNISTDataModule
 from lit_model.gan import GAN
 from parameters import HYDRA_PATH
 
 
 @dataclass
-class LitGAN(LitConfig):
-    checkpoint_path: str = 'saved_models/MNIST/'
-    pass
-
-
-@dataclass
-class TrainerGAN(TrainerConfig):
-    max_epochs: int = 52
-    pass
-
-
-@dataclass
 class ConfigGAN(Config):
     trainer: TrainerGAN = TrainerGAN
     dataset: MNISTDataset = MNISTDataset
-    lit_gan: LitGAN = LitGAN
+    lit_module: LitGAN = LitGAN
     pass
 
 
@@ -66,9 +54,9 @@ def lit_mnist_main(config: ConfigGAN):
             )
     model = GAN(
             dims=(
-                    config.lit_gan.in_channels,
-                    config.lit_gan.in_height,
-                    config.lit_gan.in_width
+                    config.lit_module.input_channels,
+                    config.lit_module.input_height,
+                    config.lit_module.input_width
                     )
             )
     trainer = Trainer(
