@@ -20,20 +20,21 @@ from omegaconf import MISSING
 from omegaconf import OmegaConf
 
 from hydra_conf.datasets import AnomalyDataset
-from hydra_conf.datasets import Dataset
+from hydra_conf.datasets import DatasetConfig
 from hydra_conf.datasets import MNISTDataset
-from hydra_conf.lit_config import LitConfig
+from hydra_conf.lit_config import LitModule
 from hydra_conf.lit_config import LitMNIST
 from hydra_conf.lit_config import LitTransformer
-from hydra_conf.trainer import Trainer
-from hydra_conf.trainer import TrainerMNIST
-from hydra_conf.trainer import TrainerTransformer
+from hydra_conf.trainer_config import TrainerConfig
+from hydra_conf.trainer_config import TrainerMNIST
+from hydra_conf.trainer_config import TrainerTransformer
 
 
 @dataclass
 class Config:
-    trainer: Trainer = MISSING
-    dataset: Dataset = MISSING
+    trainer: TrainerConfig = MISSING
+    dataset: DatasetConfig = MISSING
+    lit_module: LitModule = MISSING
     seed: int = 1234
     debug: bool = False
     pass
@@ -41,17 +42,18 @@ class Config:
 
 @dataclass
 class ConfigTransformer(Config):
-    trainer: Trainer = TrainerTransformer
-    dataset: Dataset = AnomalyDataset
-    lit_transformer: LitConfig = LitTransformer()
+    trainer: TrainerTransformer = TrainerTransformer
+    dataset: AnomalyDataset = AnomalyDataset
+    lit_module: LitTransformer = LitTransformer()
     pass
 
 
 @dataclass
 class ConfigMNIST(Config):
-    trainer: Trainer = TrainerMNIST
-    dataset: Dataset = MNISTDataset
-    lit_mnist: LitConfig = LitMNIST()
+    trainer: TrainerMNIST = TrainerMNIST
+    dataset: MNISTDataset = MNISTDataset
+    lit_module: LitMNIST = LitMNIST()
+    # optimizer 没有设置，所以结果为：???
     pass
 
 
