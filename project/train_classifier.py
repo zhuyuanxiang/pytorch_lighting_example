@@ -4,33 +4,20 @@ import hydra
 import pytorch_lightning as pl
 from hydra.core.config_store import ConfigStore
 
-from hydra_conf.datasets import DatasetConfig
 from hydra_conf.datasets import MNISTDataset
-from hydra_conf.lit_config import LitConfig
+from hydra_conf.lit_config import LitClassifier
 from hydra_conf.train_config import Config
-from hydra_conf.trainer_config import TrainerConfig
+from hydra_conf.trainer_config import TrainerClassifier
 from lit_model.classifier import LitModuleClassifier
 from parameters import HYDRA_PATH
 from torch_datasets.mnist import mnist
 
 
 @dataclass
-class LitClassifier(LitConfig):
-    checkpoint_path: str = 'saved_models/Classifier/'
-    pass
-
-
-@dataclass
-class TrainerClassifier(TrainerConfig):
-    max_epochs: int = 51
-    pass
-
-
-@dataclass
 class ConfigClassifier(Config):
-    trainer: TrainerConfig = TrainerClassifier
-    dataset: DatasetConfig = MNISTDataset
-    lit_classifier: LitConfig = LitClassifier
+    trainer: TrainerClassifier = TrainerClassifier
+    dataset: MNISTDataset = MNISTDataset
+    lit_module: LitClassifier = LitClassifier
     pass
 
 
@@ -54,8 +41,8 @@ def cli_main(config: ConfigClassifier):
     # model
     # ------------
     model = LitModuleClassifier(
-            config.lit_classifier.hidden_dim,
-            config.lit_classifier.learning_rate
+            config.lit_module.hidden_dim,
+            config.lit_module.optimizer.learning_rate
             )
 
     # ------------
