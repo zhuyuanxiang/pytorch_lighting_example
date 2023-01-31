@@ -1,9 +1,11 @@
 # My Files
+tmp/
 .history
 outputs/
+lightning_logs/
 logs/hydra_logs/
 logs/lightning_logs/
-MNIST
+datasets/MNIST
 .DS_Store
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -38,7 +40,7 @@ test_tube_exp/
 tests/tests_tt_dir/
 tests/save_dir
 default/   
-data/
+datasets/
 test_tube_logs/
 test_tube_data/
 model_weights/

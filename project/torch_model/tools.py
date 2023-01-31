@@ -20,7 +20,7 @@ import torch
 import torchvision
 from matplotlib import pyplot as plt
 from torch.nn import functional as func
-
+import pytorch_lightning as pl
 
 # ----------------------------------------------------------------------
 def visualize_examples(_indices, orig_dataset):
@@ -75,6 +75,18 @@ def plot_attention_maps(input_data, attn_maps, idx=0):
 
 
 def scaled_dot_product(query, key, value, mask=None):
+    """缩放点积注意力
+
+    Args:
+        query (_type_): 查询
+        key (_type_): 键
+        value (_type_): 值
+        mask (_type_, optional): 掩码. Defaults to None.
+
+    Returns:
+        values_out (): 值
+        attention_out (): 注意力
+    """
     d_key = query.size()[-1]
     attn_logits = torch.matmul(query, key.transpose(-2, -1))
     attn_logits = attn_logits / math.sqrt(d_key)
@@ -88,18 +100,22 @@ def scaled_dot_product(query, key, value, mask=None):
 # ----------------------------------------------------------------------
 def main(name):
     print(f'Hi, {name} 训练模型！', datetime.now())
+    test_scaled_dot_product()
+    pass
+
+
+def test_scaled_dot_product():
     seq_len, d_k = 3, 2
     pl.seed_everything(42)
     q = torch.randn(seq_len, d_k)
     k = torch.randn(seq_len, d_k)
     v = torch.randn(seq_len, d_k)
     values, attention = scaled_dot_product(q, k, v)
-    print("Q\n", q)
-    print("K\n", k)
-    print("V\n", v)
-    print("Values\n", values)
-    print("Attention\n", attention)
-    pass
+    print("-->Q:\n", q)
+    print("-->K:\n", k)
+    print("-->V:\n", v)
+    print("-->Values:\n", values)
+    print("-->Attention:\n", attention)
 
 
 # ----------------------------------------------------------------------

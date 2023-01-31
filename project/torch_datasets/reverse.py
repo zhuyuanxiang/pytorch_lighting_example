@@ -44,10 +44,14 @@ class ReverseDataset(data.Dataset):
 # ----------------------------------------------------------------------
 def main(name):
     print(f'Hi, {name} 训练模型！', datetime.now())
-    dataset = partial(ReverseDataset, 10, 16)  # partial() 函数允许你给一个或多个参数设置固定的值，减少接下来被调用时的参数个数。
-    train_loader = data.DataLoader(dataset(50000), batch_size=128, shuffle=True, drop_last=True, pin_memory=True)
-    val_loader = data.DataLoader(dataset(1000), batch_size=128)
-    test_loader = data.DataLoader(dataset(10000), batch_size=128)
+    # partial() 函数允许你给一个或多个参数设置固定的值，减少接下来被调用时的参数个数。
+    dataset = partial(ReverseDataset, num_categories=10, sequence_len=16)
+    train_loader = data.DataLoader(
+            dataset(data_size=50000),
+            batch_size=128, shuffle=True, drop_last=True, pin_memory=True
+            )  # drop_last: 丢弃不全的 batch；pin_memory: 将加载的数据保存在GPU中，加快数据传输的速度
+    val_loader = data.DataLoader(dataset(data_size=1000), batch_size=128)
+    test_loader = data.DataLoader(dataset(data_size=10000), batch_size=128)
     inp_data, labels = train_loader.dataset[0]
     print("Input data:", inp_data)
     print("Labels:    ", labels)

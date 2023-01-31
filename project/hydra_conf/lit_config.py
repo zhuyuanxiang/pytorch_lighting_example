@@ -52,12 +52,14 @@ class LitTransformerReverse(LitTransformer):
 @dataclass
 class LitClassifier(LitModule):
     checkpoint_path: str = 'saved_models/Classifier/'
+    optimizer: Optimizers = Optimizers
     pass
 
 
 @dataclass
 class LitMNIST(LitModule):
     checkpoint_path: str = 'saved_models/MNIST/'
+    optimizer: Optimizers = Optimizers
     pass
 
 

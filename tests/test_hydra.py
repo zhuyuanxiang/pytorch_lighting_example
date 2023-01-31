@@ -20,10 +20,10 @@ from hydra import initialize
 from hydra import initialize_config_module
 from hydra.core.config_store import ConfigStore
 
-from hydra_conf.train_config import ConfigMNIST
-from toolbox import get_hydra_path
+from parameters import HYDRA_PATH
+from train_mnist import ConfigMNIST
+from parameters import PROJECT_PATH
 
-HYDRA_PATH = get_hydra_path(os.path.dirname(__file__))
 HYDRA_MODULE_PATH = 'config.train'
 
 cs = ConfigStore.instance()

@@ -12,18 +12,19 @@
 @Plan   :
 ==================================================
 """
-import os
 from argparse import ArgumentParser
 
 import hydra
 import pytorch_lightning as pl
+from omegaconf import DictConfig
 
-from toolbox import get_hydra_path
+from parameters import HYDRA_PATH
 
-HYDRA_PATH = get_hydra_path(os.path.dirname(__file__))
 DATASET_NAME = 'mnist_dataset'
 MODULE_NAME = 'lit_mnist'
-TRAINER_NAME = 'trainer'
+TRAINER_NAME = 'train'
+
+DictConfig
 
 
 # ----------------------------------------------------------------------

@@ -48,14 +48,14 @@ python train_classifier.py
 项目作为包的设置可以轻松地导入任意的文件，如下：
 
 ```python
-from project.data_module.mnist import mnist
+from project.torch_datasets.mnist import mnist
 from project.lit_classifier_main import LitClassifier
 from pytorch_lightning import Trainer
 
 # model
 model = LitClassifier()
 
-# data
+# datasets
 train, val, test = mnist()
 
 # train

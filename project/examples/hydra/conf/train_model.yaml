@@ -5,6 +5,7 @@ defaults:
 
 seed: 1234
 debug: true
+todo: [ 0,1,2,3,'t1','t2' ]
 hydra:
   output_subdir: null  # hydra 配置文件的输出目录
   run:
